@@ -218,6 +218,15 @@ Module.expectedDataFileDownloads++;
       };
     };
 
+      //https://github.com/emscripten-core/emscripten/pull/12209/commits/a51f59ce6c3c2c0a9690dbd7f629caf5aacde726
+   // Module['getMemory'] = function ( size){
+   //     Module['_malloc'](size);
+   //     var ret = 0; //Module['___heap_base']
+   //      var end = (ret + size + 15) & -16;
+   //      Module['___heap_base'] = end;
+   //     return ret;
+   //   }
+        
     function processPackageData(arrayBuffer) {
       Module.finishedDataFileDownloads++;
       assert(arrayBuffer, 'Loading data file failed.');
@@ -228,7 +237,12 @@ Module.expectedDataFileDownloads++;
         // copy the entire loaded file into a spot in the heap. Files will refer to slices in that. They cannot be freed though
         // (we may be allocating before malloc is ready, during startup).
         if (Module['SPLIT_MEMORY']) Module.printErr('warning: you should run the file packager with --no-heap-copy when SPLIT_MEMORY is used, otherwise copying into the heap may fail due to the splitting');
+        // https://github.com/emscripten-core/emscripten/pull/12209
         var ptr = Module['getMemory'](byteArray.length);
+        // var ptr = Module['_malloc'](byteArray.length);
+        // ptr=0;
+        console.log(ptr);
+        console.log(byteArray.length)        
         Module['HEAPU8'].set(byteArray, ptr);
         DataRequest.prototype.byteArray = Module['HEAPU8'].subarray(ptr, ptr+byteArray.length);
 
@@ -290,6 +304,6 @@ Module.expectedDataFileDownloads++;
     }
 
   }
-  loadPackage({"package_uuid":"b089b360-e752-4878-91c7-a71c0d3b80fa","remote_package_size":101106,"files":[{"filename":"/game.love","crunched":0,"start":0,"end":101106,"audio":false}]});
+  loadPackage({"package_uuid":"b089b360-e752-4878-91c7-a71c0d3b80fa","remote_package_size":101106,"files":[{"filename":"/game.love","crunched":0,"start":0,"end":7124544,"audio":false}]});
 
 })();

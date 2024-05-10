@@ -17,21 +17,21 @@ EMSDK=$2
 
 mkdir -p build/release build/compat
 
-source ${EMSDK}/emsdk_env.sh
+# source ${EMSDK}/emsdk_env.sh
 
 (
   cd build/release
-  emcmake cmake ${MEGASOURCE} -DLOVE_JIT=0 -DCMAKE_BUILD_TYPE=Release
-  emmake make VERBOSE=1 -j 12
+  emcmake cmake ${MEGASOURCE} -DLOVE_JIT=0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  emmake make -j 12
   cp love/love.js* ../../src/release
   cp love/love.wasm ../../src/release
   cp love/love.worker.js ../../src/release
 )
 
-# (
-#   cd build/compat
-#   emcmake cmake ${MEGASOURCE} -DLOVE_JIT=0 -DCMAKE_BUILD_TYPE=Release -DLOVEJS_COMPAT=1 -DSEXPORT_ALL=1 -DSMAIN_MODULE=1 -DSERROR_ON_UNDEFINED_SYMBOLS=0
-#   emmake make -j 6
-#   cp love/love.js* ../../src/compat
-#   cp love/love.wasm ../../src/compat
-# )
+(
+  cd build/compat
+  emcmake cmake ${MEGASOURCE} -DLOVE_JIT=0 -DCMAKE_BUILD_TYPE=Release -DLOVEJS_COMPAT=1 -DSEXPORT_ALL=1 -DSMAIN_MODULE=1 -DSERROR_ON_UNDEFINED_SYMBOLS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  emmake make -j 12
+  cp love/love.js* ../../src/compat
+  cp love/love.wasm ../../src/compat
+)
