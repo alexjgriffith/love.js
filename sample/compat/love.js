@@ -1,0 +1,1 @@
+../../build/compat/love/love.js

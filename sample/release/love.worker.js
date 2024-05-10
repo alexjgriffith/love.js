@@ -1,0 +1,1 @@
+../../build/release/love/love.worker.js
