@@ -2,24 +2,16 @@ var Module;
 
 var CACHEMODULE = false;
 
-if (typeof Module === 'undefined') Module = eval('(function() { try { return Module || {} } catch(e) { return {} } })()');
-
-if (!Module.expectedDataFileDownloads) {
-  Module.expectedDataFileDownloads = 0;
-  Module.finishedDataFileDownloads = 0;
-}
-Module.expectedDataFileDownloads++;
-(function() {
- var loadPackage = function(metadata) {
-
-  var PACKAGE_PATH;
-  if (typeof window === 'object') {
-    PACKAGE_PATH = window['encodeURIComponent'](window.location.pathname.toString().substring(0, window.location.pathname.toString().lastIndexOf('/')) + '/');
-  } else if (typeof location !== 'undefined') {
+var loadPackage = function(Module,metadata) {    
+    Module.expectedDataFileDownloads++;  
+    var PACKAGE_PATH;
+    if (typeof window === 'object') {
+        PACKAGE_PATH = window['encodeURIComponent'](window.location.pathname.toString().substring(0, window.location.pathname.toString().lastIndexOf('/')) + '/');
+    } else if (typeof location !== 'undefined') {
       // worker
-      PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
+        PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
     } else {
-      throw 'using preloaded data can only be done on a web page or in a web worker';
+        throw 'using preloaded data can only be done on a web page or in a web worker';
     }
     var PACKAGE_NAME = 'game.love';
     var REMOTE_PACKAGE_BASE = 'game.love';
@@ -91,8 +83,7 @@ Module.expectedDataFileDownloads++;
       function assert(check, msg) {
         if (!check) throw msg + new Error().stack;
       }
-      // {{{create_file_paths}}}
-
+        
       function DataRequest(start, end, crunched, audio) {
         this.start = start;
         this.end = end;
@@ -217,15 +208,6 @@ Module.expectedDataFileDownloads++;
         errback(error);
       };
     };
-
-      //https://github.com/emscripten-core/emscripten/pull/12209/commits/a51f59ce6c3c2c0a9690dbd7f629caf5aacde726
-   // Module['getMemory'] = function ( size){
-   //     Module['_malloc'](size);
-   //     var ret = 0; //Module['___heap_base']
-   //      var end = (ret + size + 15) & -16;
-   //      Module['___heap_base'] = end;
-   //     return ret;
-   //   }
         
     function processPackageData(arrayBuffer) {
       Module.finishedDataFileDownloads++;
@@ -239,10 +221,6 @@ Module.expectedDataFileDownloads++;
         if (Module['SPLIT_MEMORY']) Module.printErr('warning: you should run the file packager with --no-heap-copy when SPLIT_MEMORY is used, otherwise copying into the heap may fail due to the splitting');
         // https://github.com/emscripten-core/emscripten/pull/12209
         var ptr = Module['getMemory'](byteArray.length);
-        // var ptr = Module['_malloc'](byteArray.length);
-        // ptr=0;
-        console.log(ptr);
-        console.log(byteArray.length)        
         Module['HEAPU8'].set(byteArray, ptr);
         DataRequest.prototype.byteArray = Module['HEAPU8'].subarray(ptr, ptr+byteArray.length);
 
@@ -251,7 +229,6 @@ Module.expectedDataFileDownloads++;
           DataRequest.prototype.requests[files[i].filename].onload();
         }
         Module['removeRunDependency']('datafile_game.data');
-
       };
       Module['addRunDependency']('datafile_game.data');
 
@@ -292,18 +269,9 @@ Module.expectedDataFileDownloads++;
             , preloadFallback);
         }
         , preloadFallback);
-
-      if (Module['setStatus']) Module['setStatus']('Downloading...');
-
+        
+        if (Module['setStatus']) Module['setStatus']('Downloading...');
     }
-    if (Module['calledRun']) {
-      runWithFS();
-    } else {
-      if (!Module['preRun']) Module['preRun'] = [];
-      Module["preRun"].push(runWithFS); // FS is not initialized yet, wait for it
-    }
+    runWithFS()
+  };
 
-  }
-  loadPackage({"package_uuid":"b089b360-e752-4878-91c7-a71c0d3b80fa","remote_package_size":101106,"files":[{"filename":"/game.love","crunched":0,"start":0,"end":7124544,"audio":false}]});
-
-})();
