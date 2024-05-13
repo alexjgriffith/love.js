@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Change Me</title>
-    <!-- <script src = "consolewrapper.js"></script> -->
+    <script src = "consolewrapper.js"></script>
     <!-- Load custom style sheet -->
     <link rel="stylesheet" type="text/css" href="theme/love.css">
   </head>
@@ -109,8 +109,8 @@
       * }, false);
       */
      var ModuleArgs = {
-         arguments: ["web"],
-         thisProgram: "game.love",
+         arguments: ["{{{gamefile}}}","web"],
+         thisProgram: "{{{gamefile}}}",
          INITIAL_MEMORY: 0,
          printErr: console.error.bind(console),
          canvas: (function() {
@@ -152,7 +152,7 @@
      
      var applicationLoad = function(e) {
          function preRunCallback (Module) {
-             loadPackage(Module, {"package_uuid":"b089b360-e752-4878-91c7-a71c0d3b80fa","remote_package_size":{{{size}}},"files":[{"filename":"/game.love","crunched":0,"start":0,"end":{{{size}}},"audio":false}]
+             loadPackage(Module, {"package_uuid":"b089b360-e752-4878-91c7-a71c0d3b80fa","remote_package_size":{{{size}}},"files":[{"filename":"/{{{gamefile}}}","crunched":0,"start":0,"end":{{{size}}},"audio":false}]
          })}
          ModuleArgs.expectedDataFileDownloads = 0;
          ModuleArgs.finishedDataFileDownloads = 0;
