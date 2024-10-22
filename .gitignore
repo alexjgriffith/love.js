@@ -3,3 +3,5 @@ node_modules
 dist
 build
 megasource
+sample/index.html
+sample/game.love
