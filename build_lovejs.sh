@@ -17,7 +17,7 @@ EMSDK=$2
 
 mkdir -p build/release build/compat
 
-# source ${EMSDK}/emsdk_env.sh
+source ${EMSDK}/emsdk_env.sh
 
 (
   cd build/release
@@ -25,7 +25,7 @@ mkdir -p build/release build/compat
   emmake make -j 8
   cp love/love.js* ../../src/release
   cp love/love.wasm ../../src/release
-  cp love/love.worker.js ../../src/release
+  [ ! -f love/love.worker.js ] || cp -f love/love.worker.js ../../src/release
 )
 
 (
