@@ -11,12 +11,16 @@
 ;; and then again in a separate thread where ... contains the channel used to
 ;; communicate with the main thread.
 
+(pp [:version ...])
+
 (fn looper [event channel]
-  (match (channel:demand)
-    [:write vals] (do (io.write (table.concat vals "\t"))
-                      (io.write "\n"))
-    [:read cont?] (love.event.push event (prompt cont?)))
-  (looper event channel))
+  ;; (match (channel:demand)
+  ;;   [:write vals] (do (io.write (table.concat vals "\t"))
+  ;;                     (io.write "\n"))
+  ;;   [:read cont?] (love.event.push event (prompt cont?)))
+  (pp [:version])
+  ;; (looper event channel)
+  )
 
 (match ...
   (event channel) (looper event channel))
@@ -29,11 +33,6 @@
                          (love.filesystem.read "lib/stdio.lua"))
                 thread (love.thread.newThread luac)
                 io-channel (love.thread.newChannel)
-                ;; fennel 1.5 has updated repl to be a table
-                ;; with a metatable __call value. coroutine.create
-                ;; does not reference the metatable __call value
-                ;; by applying partial we fix this issue in a
-                ;; backwards compatible way.
                 coro (coroutine.create (partial fennel.repl))
                 options {:readChunk (fn [{: stack-size}]
                                       (io-channel:push [:read (< 0 stack-size)])
@@ -45,7 +44,7 @@
                          :moduleName "lib.fennel"}]
             ;; this thread will send "eval" events for us to consume:
             (coroutine.resume coro options)
-            (thread:start "eval" io-channel)
+            ;; (thread:start "eval" io-channel)
             (set love.handlers.eval
                  (fn [input]
                    (coroutine.resume coro input)))))}

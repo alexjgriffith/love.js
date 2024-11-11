@@ -1,119 +1,77 @@
-(local love (require :love))
-(local gamestate (require :lib.gamestate))
+(global _js_eval (fn [call] (fennel.eval call)))
 
-(import-macros {: log : clear-log : debug} :macro)
+(local json (require :lib.json))
 
-(var menu nil)
-;; make these into handlers to avoid
-;; popping and pushing before drawing
-(fn love.handlers.push-mode [mode callback]
-  (gamestate.push (require mode) callback))
+(local js (require :js))
 
-(fn love.handlers.pop-mode [...]
-  (gamestate.pop ...))
+;; ;; Error: attempt to yield across metamethod/C-call boundary
+;; ;; Issue with LUA PUC 5.1
+;; (local repl-options
+;;        {:readChunk (fn [{: stack-size}]
+;;                      (let [input (coroutine.yield)]
+;;                        ;; send event to js
+;;                        (print (.. "> " input))
+;;                        (.. input "\n")))
+;;         :onValues (fn [vals]
+;;                     (print (table.concat vals "\t"))
+;;                     ;; send event to js
+;;                     )
+;;         :onError (fn [_ err] (print (.. "Error: " err)))
+;;         :moduleName "lib.fennel"})
 
-(var fs false)
-(fn toggle-fullscreen []
-  ;; (local (w h flags) (love.window.getMode))
-  ;; (tset flags :fullscreen (not flags.fullscreen))
-  ;; (if flags.fullscreen
-  ;;     (love.window.setMode w h flags)
-  ;;     (love.window.setMode 1280 720 flags))
-  (love.resize (love.window.getMode))
-  (when (not _G.web)
-    (if fs
-        (let [(w h) (love.window.getDesktopDimensions 1)]
-          (love.window.setMode 1280 720)
-          (set fs false))
-        (let [(w h) (love.window.getDesktopDimensions 1)]
-          (love.window.setMode w h))
-        (set fs true))
+;; (local repl (coroutine.create (partial fennel.repl)))
+;; (coroutine.resume repl repl-options)
 
-    ))
+;; (fn love.handlers.eval [data]
+;;   (coroutine.resume repl data))
 
-(var mute false)
+(local welcome-string (string.format "Welcome to Love2D 11.5 running with Fennel %s on PUC %s" fennel.version _VERSION))
+(print welcome-string)
 
-(fn toggle-mute []
-  (set mute (not mute))
-  (if mute
-      (love.audio.setVolume 0)
-      (love.audio.setVolume 1)))
+(fn love.handlers.eval [data]
+  (print (.. "> " data))
+  (pp (fennel.eval data)))
 
-(local force-release false)
+(fn love.handlers.echo [data]
+  (pp data))
 
-(fn love.load [args argc]
-  (local params (require :src.params))
-  (set _G.dev false)
-  (when (and (= (. args 1) :dev) (not force-release))
-    (tset params :dev true)
-    (tset _G :_log-file (io.open (.. (love.filesystem.getSource) :logs/log.txt) :a))
-    (set _G.dev true)
-    (pp "Entering in Dev Mode")
-    (local debug-events (require :src.events.debug-events))
-    (debug-events.register)
+;; (js.send-custom-json-event :echo "{\"data\":1}")
+
+(fn love.userevent [name data code]
+  ;; (pp [name data code])
+  (when (pcall (fn [] (. love.handlers name)))
+    (love.event.push name data code)
     )
-  (local first-mode (if _G.dev :src.modes.game :src.modes.title))
-  (clear-log)
-  (when (= :Web (love.system.getOS)) (set _G.web true))
-  ;; (when (not _G.web)
-  ;;   (let [(w h) (love.window.getDesktopDimensions 1)] (love.window.setMode w h)))
-  (love.graphics.setDefaultFilter :nearest :nearest)
-  (local resources (require :src.resources))
-  (local _ (require :src.sound-events))
-  (love.mouse.setCursor resources.cursors.normal)
-  (when _G.dev (toggle-mute))
-  (resources.bgm:play)
-  (set menu (require :src.modes.menu))
-  (let [gamestate (require :lib.gamestate)]
-    (gamestate.registerEvents)
-    (gamestate.switch (require first-mode)))  
-  (when (not _G.web)
-    (let [repl (require :lib.stdio)] (repl:start))))
-
-(fn love.draw [])
-
-(fn love.resize [w h])
-
-(fn love.quit []
-  (when _G._log-file
-        (_G._log-file:write "QUIT\n")
-        (_G._log-file:flush)
-        (_G._log-file:close))
-  true
+  ;; (match name
+  ;;   :eval (love.event.push :eval data))
   )
 
-(fn love.update [dt]
-  (local flux (require :lib.flux))
-  (local sounds (require :src.sounds))
-  (local timer (require :lib.timer))
-  (when _G.dev
-    ;; (require :src.update-components)
-    (local watch (require :lib.watch))
-    ;; (love.audio.setVolume 0.3)
-    (watch.update))
-  (local {: snow} (require :src.state))
-  (when snow (snow:update dt))
-  (flux.update (or dt (/ 1 60)))
-  )
 
-(fn toggle-menu []
-  (if menu.active
-      (do
-        (gamestate.pop))
-      (do
-        (gamestate.push menu))))
+(local websockets (require :websockets))
 
-(fn love.draw []
-  (love.graphics.reset)
-  (love.graphics.rectangle :line 0 0 1280 720))
+(local websocket (websockets.new "wss://echo.websocket.org" "echo" 1))
+
+;; (js.example-event)
+
+(fn love.load [])
+
+(var str "")
+
+(fn love.update [dt])
 
 (fn love.keypressed [key]
-  (local ctrl (love.keyboard.isDown :lctrl))
-  (if (not ctrl)
-    (match key
-      :f11 (toggle-fullscreen)
-      :f10 (toggle-menu)
-      )
-    (match key
-      :m (toggle-mute)))
-  )
+  (match key
+    :h (let [js (require :js)] (js.call "
+{
+var output = document.getElementById('output');
+if (output.style.display == 'none'){
+  output.style.display = 'block';
+}
+else {
+  output.style.display = 'none';
+}
+}"
+                                       ))))
+
+(fn love.draw []
+  (love.graphics.print "Hello world"))
